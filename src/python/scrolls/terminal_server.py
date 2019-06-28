@@ -1,5 +1,6 @@
 import os
 import socket
+import subprocess
 
 BIND_IP = '0.0.0.0'
 BIND_PORT = 9000
@@ -42,9 +43,20 @@ def command_handler(command_received):
             next_path = target_path
         next_path = os.path.abspath(next_path)
         answer = "Moved to path: %s" % (next_path,)
+    elif command_received[0:5] == "exec ":
+        cmd = command_received[5:]
+        print("Executing command: %s" % (cmd,))
+
+        try:
+            subprocess_cmd = cmd
+            subprocess_output = subprocess.check_output(subprocess_cmd, shell=True)
+            subprocess_output = subprocess_output.decode("utf8")
+            subprocess_output = subprocess_output.strip()
+            answer = subprocess_output
+        except:
+            answer = "ERROR: something went wrong!!!"
 
     return answer
-
 
 
 if __name__ == '__main__':

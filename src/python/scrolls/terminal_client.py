@@ -21,11 +21,19 @@ def show_commands_output(cmd_output):
     print(cmd_output)
 
 
+def parse_command_input(command_input):
+    if command_input != "quit" and command_input[0:2] not in ['cd', 'ls']:
+        command_input = "exec " + command_input
+
+    return command_input
+
+
 def command_loop():
     command_input = ""
     while command_input != "quit":
         command_input = input(">> ")
-        udp_client(command_input, show_commands_output)
+        command_to_send = parse_command_input(command_input)
+        udp_client(command_to_send, show_commands_output)
 
 
 if __name__ == '__main__':
