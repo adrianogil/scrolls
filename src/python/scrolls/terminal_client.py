@@ -21,7 +21,18 @@ def show_commands_output(cmd_output):
     print(cmd_output)
 
 
+def command_loop():
+    command_input = ""
+    while command_input != "quit":
+        command_input = input(">> ")
+        udp_client(command_input, show_commands_output)
+
+
 if __name__ == '__main__':
+    if len(sys.argv) == 1:
+        command_loop()
+        exit()
+
     command_to_send = DATA
     if len(sys.argv) > 1:
         command_to_send = sys.argv[1]
