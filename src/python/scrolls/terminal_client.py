@@ -2,7 +2,7 @@ import sys
 import socket
 
 
-HOST = '127.0.0.1'
+HOST = '10.37.129.2'
 PORT = 9000
 DATA = 'AAAAAAAAAA'
 
