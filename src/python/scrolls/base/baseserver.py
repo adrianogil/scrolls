@@ -39,7 +39,10 @@ class ScrollServer:
             command_data.answer(cmd_output)
 
     def _process_command(self, command):
-        command_received = command.decode("utf8")
+        try:
+            command_received = command.decode("utf8")
+        except:
+            command_received = command
         print("Command received: %s" % (command_received,))
         cmd_output = 'ACK'
         if command_received == "ls":

@@ -1,7 +1,7 @@
 import socket
 
 
-class MessageData:
+class _MessageData:
     def __init__(self):
         self.command = None
         self.addr = None
@@ -41,7 +41,7 @@ class UdpChannel:
     def receive_command(self):
         data, addr = self.server.recvfrom(1024)
 
-        message_data = MessageData()
+        message_data = _MessageData()
         message_data.command = data
         message_data.addr = addr
         message_data.server = self.server
