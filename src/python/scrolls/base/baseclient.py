@@ -23,6 +23,12 @@ class ScrollClient:
         cmd_output = cmd_output.decode("utf8")
         print(cmd_output)
 
+    def parse_command_input(self, command_input):
+        if command_input != "quit" and command_input[0:2] not in ['cd', 'ls']:
+            command_input = "exec " + command_input
+
+        return command_input
+
     def command_loop(self):
         command_input = ""
         while command_input != "quit":

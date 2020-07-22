@@ -9,7 +9,7 @@ def get_udp_server():
     return server
 
 
-def get_upd_client():
+def get_udp_client():
     client = ScrollClient()
     client.comm_channel = UdpChannel()
     return client
