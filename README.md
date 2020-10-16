@@ -1,5 +1,8 @@
 # scrolls
 A simple python terminal emulator
 
-# Similar tools:
+## Commands
+
+
+## Similar tools:
 * https://github.com/cornerpirate/gitshell
