@@ -20,7 +20,7 @@ class GitChannel:
         self.git_repo_path = ""
         self.update_time_in_seconds = 1
         self.target_input_file = "in.txt"
-        self.target_ouput_file = "out.txt"
+        self.target_output_file = "out.txt"
         self.last_message_input_id = 0
         self.last_message_output_id = 0
 
@@ -116,10 +116,10 @@ class GitChannel:
             "message": data
         }
 
-        with open(self.target_ouput_file, 'w', encoding="utf-8") as buffer_file:
+        with open(self.target_output_file, 'w', encoding="utf-8") as buffer_file:
             json.dump(output_data, buffer_file)
 
-        clitools.run_cmd("git add " + self.target_ouput_file)
+        clitools.run_cmd("git add " + self.target_output_file)
         clitools.run_cmd("git commit -m 'Update'")
 
         clitools.run_cmd("git push")
@@ -133,7 +133,7 @@ class GitChannel:
         clitools.run_cmd("git reset --hard " + upstream_branch)
 
         try:
-            with open(self.target_ouput_file, 'r', encoding="utf-8") as buffer_file:
+            with open(self.target_output_file, 'r', encoding="utf-8") as buffer_file:
                 output_data = json.load(buffer_file)
 
             if output_data["message_id"] > self.last_message_output_id:
