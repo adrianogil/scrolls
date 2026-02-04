@@ -43,6 +43,9 @@ class GitChannel:
 
         return data
 
+    def send_message(self, message, to_buffer="output"):
+        self.send_command(message, wait_for_answer=False, to_buffer=to_buffer)
+
     def setup_server(self):
         os.chdir(self.git_repo_path)
         self._read_inbuffer()

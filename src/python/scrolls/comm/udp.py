@@ -17,6 +17,15 @@ class UdpChannel:
         self.port = 9000
         self.server = None
 
+    def send_message(self, message, target_host=None, target_port=None):
+        if target_host is None:
+            target_host = self.host
+        if target_port is None:
+            target_port = self.port
+
+        client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        client.sendto(message.encode(), (target_host, target_port))
+
     def send_command(self, command_to_send, target_host=None, target_port=None):
         if target_host is None:
             target_host = self.host
