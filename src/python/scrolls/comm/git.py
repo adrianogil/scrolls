@@ -1,4 +1,5 @@
 import scrolls.utils.clitools as clitools
+from scrolls.utils.encryption import decrypt_message, encrypt_message
 
 import json
 import time
@@ -23,8 +24,10 @@ class GitChannel:
         self.target_output_file = "out.txt"
         self.last_message_input_id = 0
         self.last_message_output_id = 0
+        self.encryption_key = None
 
     def send_command(self, command_to_send, wait_for_answer=True, to_buffer="input"):
+        command_to_send = self._encrypt(command_to_send)
         if to_buffer == "input":
             if self.last_message_input_id == 0:
                 self._read_inbuffer()
@@ -62,11 +65,22 @@ class GitChannel:
             if not found_updates:
                 time.sleep(self.update_time_in_seconds)
 
+        command = self._decrypt(command)
         message_data = _MessageData()
         message_data.command = command
         message_data.server = self
 
         return message_data
+
+    def _encrypt(self, message):
+        if message is None:
+            return message
+        return encrypt_message(message, self.encryption_key)
+
+    def _decrypt(self, message):
+        if message is None:
+            return message
+        return decrypt_message(message, self.encryption_key)
 
     def _write_inbuffer(self, data):
         os.chdir(self.git_repo_path)

@@ -3,6 +3,11 @@ A simple python terminal emulator
 
 ## Commands
 
+## Encryption
+
+All channels can optionally encrypt messages using a shared key. Set
+`SCROLLS_ENCRYPTION_KEY` on both the client and the server to enable it.
+
 ## Telegram channel
 
 The Telegram communication channel requires a bot token and chat IDs:

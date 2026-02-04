@@ -31,6 +31,10 @@ if __name__ == '__main__':
     else:
         target_channel = UdpChannel()
 
+    encryption_key = os.environ.get("SCROLLS_ENCRYPTION_KEY")
+    if encryption_key:
+        target_channel.encryption_key = encryption_key
+
     if "--server" in args:
         server = ScrollServer()
         server.comm_channel = target_channel

@@ -2,6 +2,8 @@ import json
 import time
 from urllib import parse, request
 
+from scrolls.utils.encryption import decrypt_message, encrypt_message
+
 
 class _MessageData:
     def __init__(self):
@@ -20,6 +22,7 @@ class TelegramChannel:
         self.update_offset = None
         self.allowed_chat_ids = set()
         self.target_chat_id = None
+        self.encryption_key = None
 
     def setup_server(self):
         if not self.bot_token:
@@ -55,6 +58,7 @@ class TelegramChannel:
                 if not text:
                     continue
 
+                text = decrypt_message(text, self.encryption_key)
                 message_data = _MessageData()
                 message_data.command = text
                 message_data.chat_id = chat_id
@@ -62,6 +66,7 @@ class TelegramChannel:
                 return message_data
 
     def send_message(self, chat_id, message):
+        message = encrypt_message(message, self.encryption_key)
         payload = {"chat_id": chat_id, "text": message}
         self._api_request("sendMessage", payload)
 
