@@ -4,8 +4,8 @@ A simple Python terminal emulator that ships with multiple communication channel
 
 ## Features
 
-- Client/server architecture with a CLI loop for sending commands.  
-- Built-in commands: `ls`, `cd <path>`, and `exec <command>` (client automatically prefixes non-built-ins with `exec`).  
+- Client/server architecture with a CLI loop for sending commands.
+- Built-in commands: `ls`, `cd <path>`, and `exec <command>` (client automatically prefixes non-built-ins with `exec`).
 - Multiple communication backends:
   - UDP transport (default) on `127.0.0.1:9000`.
   - Git-backed transport that exchanges commands via committed `in.txt`/`out.txt` buffers.
@@ -69,6 +69,17 @@ export TELEGRAM_ALLOWED_CHAT_IDS="12345678"
 python -m scrolls --server --telegram
 ```
 
-## Similar tools
+## Relay server
 
-- https://github.com/cornerpirate/gitshell
+Relay mode forwards messages between multiple channels. For example, to relay Telegram
+messages to UDP (and vice versa):
+
+```
+export TELEGRAM_BOT_TOKEN="123456:ABCDEF"
+export TELEGRAM_ALLOWED_CHAT_IDS="12345678"
+export TELEGRAM_CHAT_ID="12345678"
+python -m scrolls --relay --telegram --udp
+```
+
+## Similar tools:
+* https://github.com/cornerpirate/gitshell

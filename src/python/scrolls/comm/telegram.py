@@ -61,7 +61,14 @@ class TelegramChannel:
                 message_data.server = self
                 return message_data
 
-    def send_message(self, chat_id, message):
+    def send_message(self, chat_id=None, message=None):
+        if chat_id is None:
+            chat_id = self.target_chat_id
+        if not chat_id:
+            raise ValueError("Target chat id is required to send messages")
+        if message is None:
+            raise ValueError("Message is required to send messages")
+
         payload = {"chat_id": chat_id, "text": message}
         self._api_request("sendMessage", payload)
 
