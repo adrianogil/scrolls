@@ -1,6 +1,40 @@
 import socket
 
 
+MAX_UDP_PAYLOAD_BYTES = 1024
+
+
+class InvalidUdpPayload(ValueError):
+    pass
+
+
+def validate_udp_payload(payload):
+    if not isinstance(payload, (bytes, bytearray)):
+        raise InvalidUdpPayload("payload must be bytes")
+
+    payload = bytes(payload)
+    if len(payload) == 0:
+        raise InvalidUdpPayload("payload must not be empty")
+    if len(payload) > MAX_UDP_PAYLOAD_BYTES:
+        raise InvalidUdpPayload("payload is too large")
+
+    try:
+        text = payload.decode("utf-8")
+    except UnicodeDecodeError as exception:
+        raise InvalidUdpPayload("payload must be valid UTF-8") from exception
+
+    if text.strip() == "":
+        raise InvalidUdpPayload("payload must not be blank")
+    if "\x00" in text:
+        raise InvalidUdpPayload("payload must not contain NUL bytes")
+
+    return payload
+
+
+def invalid_payload_response(exception):
+    return "ERROR: invalid UDP payload: %s" % (exception,)
+
+
 class _MessageData:
     def __init__(self):
         self.command = None
@@ -48,11 +82,18 @@ class UdpChannel:
         self.server.bind((target_host, target_port))
 
     def receive_command(self):
-        data, addr = self.server.recvfrom(1024)
+        while True:
+            data, addr = self.server.recvfrom(MAX_UDP_PAYLOAD_BYTES)
 
-        message_data = _MessageData()
-        message_data.command = data
-        message_data.addr = addr
-        message_data.server = self.server
+            try:
+                data = validate_udp_payload(data)
+            except InvalidUdpPayload as exception:
+                self.server.sendto(invalid_payload_response(exception).encode(), addr)
+                continue
 
-        return message_data
+            message_data = _MessageData()
+            message_data.command = data
+            message_data.addr = addr
+            message_data.server = self.server
+
+            return message_data
