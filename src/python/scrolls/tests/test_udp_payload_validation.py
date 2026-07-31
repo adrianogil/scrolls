@@ -2,7 +2,9 @@ import pytest
 
 from scrolls.comm.udp import (
     InvalidUdpPayload,
+    UDP_RESPONSE_TRUNCATION_MARKER,
     UdpChannel,
+    encode_udp_response,
     invalid_payload_response,
     validate_udp_payload,
 )
@@ -92,3 +94,49 @@ def test_terminal_dispatch_calls_handler_for_valid_payload():
 
     assert handler_calls == [b"pwd"]
     assert fake_socket.sent == [(b"handled", ("127.0.0.1", 10000))]
+
+
+def test_encode_udp_response_preserves_under_limit_response():
+    response = "handled 🙂"
+
+    encoded = encode_udp_response(response, max_response_bytes=64)
+
+    assert encoded == response.encode("utf-8")
+
+
+def test_terminal_dispatch_truncates_over_limit_response():
+    fake_socket = FakeUdpSocket()
+    addr = ("127.0.0.1", 10000)
+
+    dispatch_udp_payload(
+        fake_socket,
+        b"ls",
+        addr,
+        lambda data: "x" * 100,
+        max_response_bytes=64,
+    )
+
+    response, response_addr = fake_socket.sent[0]
+    assert response_addr == addr
+    assert len(response) == 64
+    assert response.decode("utf-8").endswith(UDP_RESPONSE_TRUNCATION_MARKER)
+
+
+def test_udp_channel_truncates_response_without_splitting_utf8():
+    addr = ("127.0.0.1", 10000)
+    fake_socket = FakeUdpSocket([(b"ls", addr)])
+    channel = UdpChannel(max_response_bytes=64)
+    channel.server = fake_socket
+
+    message_data = channel.receive_command()
+    message_data.answer("🙂" * 20)
+
+    response, response_addr = fake_socket.sent[0]
+    decoded_response = response.decode("utf-8")
+    prefix = decoded_response[:-len(UDP_RESPONSE_TRUNCATION_MARKER)]
+
+    assert response_addr == addr
+    assert len(response) <= 64
+    assert decoded_response.endswith(UDP_RESPONSE_TRUNCATION_MARKER)
+    assert prefix
+    assert set(prefix) == {"🙂"}

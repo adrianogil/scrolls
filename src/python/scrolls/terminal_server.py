@@ -4,7 +4,10 @@ import subprocess
 
 from scrolls.comm.udp import (
     InvalidUdpPayload,
+    MAX_UDP_PAYLOAD_BYTES,
+    MAX_UDP_RESPONSE_BYTES,
     invalid_payload_response,
+    send_udp_response,
     validate_udp_payload,
 )
 
@@ -12,29 +15,49 @@ BIND_IP = '0.0.0.0'
 BIND_PORT = 9000
 
 
-def dispatch_udp_payload(server, data, addr, data_handler_callback=None):
+def dispatch_udp_payload(
+    server,
+    data,
+    addr,
+    data_handler_callback=None,
+    max_response_bytes=MAX_UDP_RESPONSE_BYTES,
+):
     try:
         data = validate_udp_payload(data)
     except InvalidUdpPayload as exception:
-        server.sendto(invalid_payload_response(exception).encode(), addr)
+        send_udp_response(
+            server,
+            invalid_payload_response(exception),
+            addr,
+            max_response_bytes,
+        )
         return
 
     answer = 'ACK'
     if data_handler_callback is not None:
         answer = data_handler_callback(data)
 
-    server.sendto(answer.encode(), addr)
+    send_udp_response(server, answer, addr, max_response_bytes)
 
 
-def udp_server(data_handler_callback=None):
+def udp_server(
+    data_handler_callback=None,
+    max_response_bytes=MAX_UDP_RESPONSE_BYTES,
+):
     server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     server.bind((BIND_IP, BIND_PORT))
     print("Waiting on port: " + str(BIND_PORT))
 
     while 1:
-        data, addr = server.recvfrom(1024)
+        data, addr = server.recvfrom(MAX_UDP_PAYLOAD_BYTES)
         print(addr)
-        dispatch_udp_payload(server, data, addr, data_handler_callback)
+        dispatch_udp_payload(
+            server,
+            data,
+            addr,
+            data_handler_callback,
+            max_response_bytes,
+        )
 
 
 def command_handler(command_received):
