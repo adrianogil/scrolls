@@ -43,7 +43,7 @@ class ScrollServer:
             command_received = command.decode("utf8")
         except:
             command_received = command
-        print("Command received: %s" % (command_received,))
+        print("Command received")
         cmd_output = 'ACK'
         if command_received == "ls":
             cmd_output = ""
@@ -65,7 +65,7 @@ class ScrollServer:
             cmd_output = "Moved to path: %s" % (next_path,)
         elif command_received[0:5] == "exec ":
             cmd = command_received[5:]
-            print("Executing command: %s" % (cmd,))
+            print("Executing command")
 
             try:
                 cmd_output = clitools.run_cmd(cmd)

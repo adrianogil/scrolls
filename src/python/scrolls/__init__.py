@@ -5,15 +5,15 @@ from scrolls.comm.git import GitChannel
 from scrolls.comm.telegram import TelegramChannel
 
 
-def get_udp_server():
+def get_udp_server(key=None, legacy_mode=False):
     server = ScrollServer()
-    server.comm_channel = UdpChannel()
+    server.comm_channel = UdpChannel(key=key, legacy_mode=legacy_mode)
     return server
 
 
-def get_udp_client():
+def get_udp_client(key=None, legacy_mode=False):
     client = ScrollClient()
-    client.comm_channel = UdpChannel()
+    client.comm_channel = UdpChannel(key=key, legacy_mode=legacy_mode)
     return client
 
 

@@ -17,7 +17,7 @@ class FakeUdpSocket:
         self.sent = []
 
     def recvfrom(self, payload_size):
-        assert payload_size == 1024
+        assert payload_size == 1025
         return self.received.pop(0)
 
     def sendto(self, data, addr):
@@ -37,6 +37,7 @@ def test_validate_udp_payload_accepts_non_blank_utf8_bytes():
         b"   \n\t",
         b"\xff",
         b"exec echo\x00hidden",
+        b"x" * 1025,
         "not bytes",
     ],
 )
@@ -54,7 +55,7 @@ def test_receive_command_rejects_invalid_payload_before_dispatch():
             (b"ls", valid_addr),
         ]
     )
-    channel = UdpChannel()
+    channel = UdpChannel(legacy_mode=True)
     channel.server = fake_socket
 
     message_data = channel.receive_command()
@@ -74,7 +75,13 @@ def test_terminal_dispatch_does_not_call_handler_for_invalid_payload():
         handler_calls.append(data)
         return "ACK"
 
-    dispatch_udp_payload(fake_socket, b"", ("127.0.0.1", 10000), handler)
+    dispatch_udp_payload(
+        fake_socket,
+        b"",
+        ("127.0.0.1", 10000),
+        handler,
+        legacy_mode=True,
+    )
 
     assert handler_calls == []
     assert fake_socket.sent == [
@@ -90,7 +97,13 @@ def test_terminal_dispatch_calls_handler_for_valid_payload():
         handler_calls.append(data)
         return "handled"
 
-    dispatch_udp_payload(fake_socket, b"pwd", ("127.0.0.1", 10000), handler)
+    dispatch_udp_payload(
+        fake_socket,
+        b"pwd",
+        ("127.0.0.1", 10000),
+        handler,
+        legacy_mode=True,
+    )
 
     assert handler_calls == [b"pwd"]
     assert fake_socket.sent == [(b"handled", ("127.0.0.1", 10000))]
@@ -114,6 +127,7 @@ def test_terminal_dispatch_truncates_over_limit_response():
         addr,
         lambda data: "x" * 100,
         max_response_bytes=64,
+        legacy_mode=True,
     )
 
     response, response_addr = fake_socket.sent[0]
@@ -125,7 +139,7 @@ def test_terminal_dispatch_truncates_over_limit_response():
 def test_udp_channel_truncates_response_without_splitting_utf8():
     addr = ("127.0.0.1", 10000)
     fake_socket = FakeUdpSocket([(b"ls", addr)])
-    channel = UdpChannel(max_response_bytes=64)
+    channel = UdpChannel(legacy_mode=True, max_response_bytes=64)
     channel.server = fake_socket
 
     message_data = channel.receive_command()

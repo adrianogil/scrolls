@@ -1,29 +1,30 @@
 from scrolls.base.baseserver import ScrollServer
 from scrolls.base.baseclient import ScrollClient
 from scrolls.base.relayserver import RelayServer
-from scrolls.comm.udp import UdpChannel
+from scrolls.comm.udp import build_udp_channel as build_udp_channel_from_config
 from scrolls.comm.git import GitChannel
 from scrolls.comm.telegram import TelegramChannel
 
 
-if __name__ == '__main__':
+def main(argv=None, environ=None):
     import sys
     import os
-    args = sys.argv[1:]
+    args = list(sys.argv[1:] if argv is None else argv)
+    environ = os.environ if environ is None else environ
 
     target_channel = None
 
     def build_telegram_channel():
         channel = TelegramChannel()
-        channel.bot_token = os.environ.get("TELEGRAM_BOT_TOKEN", "")
-        allowed_chat_ids = os.environ.get("TELEGRAM_ALLOWED_CHAT_IDS", "")
+        channel.bot_token = environ.get("TELEGRAM_BOT_TOKEN", "")
+        allowed_chat_ids = environ.get("TELEGRAM_ALLOWED_CHAT_IDS", "")
         if allowed_chat_ids:
             channel.allowed_chat_ids = {
                 int(chat_id.strip())
                 for chat_id in allowed_chat_ids.split(",")
                 if chat_id.strip()
             }
-        channel.target_chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+        channel.target_chat_id = environ.get("TELEGRAM_CHAT_ID")
         channel.setup_server()
         return channel
 
@@ -34,7 +35,7 @@ if __name__ == '__main__':
         return channel
 
     def build_udp_channel():
-        return UdpChannel()
+        return build_udp_channel_from_config(args=args, environ=environ)
 
     if "--relay" in args:
         relay_server = RelayServer()
@@ -50,7 +51,7 @@ if __name__ == '__main__':
             relay_server.add_channel(channel)
 
         relay_server.run()
-        sys.exit(0)
+        return 0
 
     if "--telegram" in args:
         target_channel = build_telegram_channel()
@@ -67,3 +68,8 @@ if __name__ == '__main__':
         client = ScrollClient()
         client.comm_channel = target_channel
         client.command_loop()
+    return 0
+
+
+if __name__ == '__main__':
+    main()
